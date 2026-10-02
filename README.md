@@ -41,6 +41,7 @@ File
     - The repo is set up to make you make a pull request but a code review is not required (please let Riley know if this is not working)
 * Check your branch name and move tickets in the Kanban according to your progress
 * Make meaningful commit messages and name your pull request the **same as your branch**
+* Your branch will be deleted once you merge (you will make a new branch for every ticket)
 
 
 ## Progress
