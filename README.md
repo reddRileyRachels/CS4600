@@ -37,9 +37,10 @@ File
 ### Merging 
 * Make a separate branch to develop with **do not** write straight to main (follow the branch naming conventions ^^)
 * **Do not merge without making a pull request and managing merge conflicts first**   
+* Be sure to pull the current changes into the main branch and merge the changes into your local branch before merging
 * Use the discord to notify the team of merging so no versions get overwritten (merge one at a time)  
-    - The repo is set up to make you make a pull request but a code review is not required (please let Riley know if this is not working)
-* Check your branch name and move tickets in the Kanban according to your progress
+    - The repo is set up to force you to make a pull request but a code review is not currently required (please let Riley know if this is not working)
+* Move tickets in the Kanban according to your progress
 * Make meaningful commit messages and name your pull request the **same as your branch**
 * Your branch will be deleted once you merge (you will make a new branch for every ticket)
 
