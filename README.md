@@ -17,8 +17,8 @@ to be written
 
 ### Tests
 * Run in powershell terminal: 
-    1. pip install -r requirements.txt
-    2. pytest
+    - pip install -r requirements.txt
+    - pytest
 
 ## Contributor Guide
 
@@ -56,10 +56,10 @@ File
 - Project Milestone 7
 
 > ### Completed Milestones
-- Project Milestone 1
-    - Define core project interfaces (Token, ASTNode, Symbol, Type).
-    - Establish project folder layout and test harness scaffolding.
-    - Set up templates and development guidelines.
-- Project Milestone 2
-    - Lexer Implementations 
-    - Lexer Unit Tests
+> - Project Milestone 1
+>    - Define core project interfaces (Token, ASTNode, Symbol, Type).
+>    - Establish project folder layout and test harness scaffolding.
+>    - Set up templates and development guidelines.
+> - Project Milestone 2
+>    - Lexer Implementations 
+>    - Lexer Unit Tests
