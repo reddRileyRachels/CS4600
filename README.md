@@ -16,10 +16,9 @@ to be written
 to be written 
 
 ### Tests
-* Currently only one example test implemented test_setup.py   
 * Run in powershell terminal: 
-    - pip install -r requirements.txt
-    - pytest
+    1. pip install -r requirements.txt
+    2. pytest
 
 ## Contributor Guide
 
@@ -47,6 +46,16 @@ File
 
 ## Progress
 ### To Do
+- Project Milestone 3
+    - Build AST node hierarchy (Statement, Expression subtypes)
+    - Implement recursive-descent routines for declarations, assignments, and control flow
+    - Parser successfully constructs ASTs for basic MatLang program statements
+- Project Milestone 4
+- Project Milestone 5
+- Project Milestone 6
+- Project Milestone 7
+
+> ### Completed Milestones
 - Project Milestone 1
     - Define core project interfaces (Token, ASTNode, Symbol, Type).
     - Establish project folder layout and test harness scaffolding.
@@ -54,10 +63,3 @@ File
 - Project Milestone 2
     - Lexer Implementations 
     - Lexer Unit Tests
-- Project Milestone 3
-- Project Milestone 4
-- Project Milestone 5
-- Project Milestone 6
-- Project Milestone 7
-
-> ### Completed Milestones
