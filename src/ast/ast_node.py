@@ -1,4 +1,4 @@
-# defines different node types based on the MatlangSpec.pdf grammar rules
+''' defines different node types based on the MatlangSpec.pdf grammar rules '''
 # defines statements then expressions
 class ASTNode:
     def __init__(self, line):
@@ -15,6 +15,7 @@ class Program(ASTNode):
         super().__init__(line) # a program may or may not have a corresponding line
         self.statement_list = statement_list # program is defined as zero or more statements
 
+''' STATEMENTS '''
 class DeclarationStmt(Statement):
     def __init__(self, line, declared_type, declared_identifier, initializer="None"):
         super().__init__(line)
@@ -50,3 +51,5 @@ class BlockStmt(Statement):
     def __init__(self, line, block_code):
         super().__init__(line)
         self.block_code = block_code # the code inside blocks is any number of statements
+
+''' EXPRESSIONS '''
