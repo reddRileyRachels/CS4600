@@ -1,5 +1,5 @@
 from src.lexer.token import TokenKind
-from src.ast.ast_node import DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr
+from src.ast.ast_node import DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr, AssignmentStmt, MatrixAccessExpr
 from src.semantic.type import IntType, FloatType, MatrixType
 
 
@@ -111,3 +111,24 @@ class Parser:
         if self.match(TokenKind.IDENTIFIERLIT):
             return VariableExpr(token.line, token.lexeme)
         raise ParseError(f"Expected an expression (found '{token.lexeme}')", token.line)
+        #this is maria- asked claude more info, it seems this also needs a "(" as an expression 
+
+    
+    def parse_assignment(self):
+        """assignment -> IDENTIFIERLIT ASSIGNMENT expression SEMICOLON
+                   | IDENTIFIERLIT LBRACKET expression COMMA expression RBRACKET
+                     ASSIGNMENT expression SEMICOLON"""
+        name_tok = self.expect(TokenKind.IDENTIFIERLIT, "Expected variable name")
+        target = name_tok.lexeme                    # simple form: target is the name
+
+        if self.match(TokenKind.LBRACKET):          # indexed form: M[i, j] = e;
+            row = self.parse_expression()
+            self.expect(TokenKind.COMMA, "Expected ',' between matrix indices")
+            col = self.parse_expression()
+            self.expect(TokenKind.RBRACKET, "Expected ']' after matrix indices")
+            target = MatrixAccessExpr(name_tok.line, name_tok.lexeme, row, col)
+
+        self.expect(TokenKind.ASSIGNMENT, "Expected '=' in assignment")
+        value = self.parse_expression()
+        self.expect(TokenKind.SEMICOLON, "Expected ';' after assignment")
+        return AssignmentStmt(line=name_tok.line, target=target, value=value)
