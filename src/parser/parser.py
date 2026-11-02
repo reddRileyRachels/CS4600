@@ -1,5 +1,6 @@
 from src.lexer.token import TokenKind
-from src.ast.ast_node import DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr, AssignmentStmt, MatrixAccessExpr
+from src.ast.ast_node import (DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr, AssignmentStmt, 
+                              MatrixAccessExpr, BinaryExpr, CallExpr, TransposeExpr, MatrixLiteralExpr)
 from src.semantic.type import IntType, FloatType, MatrixType
 
 
@@ -93,26 +94,101 @@ class Parser:
         return DeclarationStmt(line, declared_type, name.lexeme, initializer)
 
 
-    # TEMPORARY expression parser (Claude suggested me to add it)
+    #Expression parser 
     def parse_expression(self):
-        """TEMPORARY: only integer/float literals, variables, and unary minus.
+        """expression -> additive"""
+        return self.parse_additive()
 
-        This stub lets the statement routines be built and tested now. Replace it with the full
-        additive -> multiplicative -> unary -> postfix -> primary chain
-        (spec section 3) when that ticket is done.
-        """
-        token = self.peek()
-        if self.match(TokenKind.DIFFERENCE):
-            return UnaryExpr(token.line, self.parse_expression(), token.lexeme)
+    def parse_additive(self):
+        """additive -> multiplicative (('+' | '-') multiplicative)*"""
+        node = self.parse_multiplicative()
+        while self.peek().kind in (TokenKind.SUM, TokenKind.DIFFERENCE):
+            op = self.advance()
+            right = self.parse_multiplicative()
+            node = BinaryExpr(op.line, node, op.lexeme, right)   # old node becomes left child
+        return node
+
+    def parse_multiplicative(self):
+        """multiplicative -> unary (('*' | '/') unary)*"""
+        node = self.parse_unary()
+        while self.peek().kind in (TokenKind.PRODUCT, TokenKind.QUOTIENT):
+            op = self.advance()
+            right = self.parse_unary()
+            node = BinaryExpr(op.line, node, op.lexeme, right)
+        return node
+
+    def parse_unary(self):
+        """unary -> '-' unary | postfix"""
+        if self.peek().kind == TokenKind.DIFFERENCE:
+            op = self.advance()
+            return UnaryExpr(op.line, self.parse_unary(), op.lexeme)
+        return self.parse_postfix()
+
+    def parse_postfix(self):
+        """postfix -> primary "'"*"""
+        node = self.parse_primary()
+        while self.peek().kind == TokenKind.TRANSPOSE:
+            op = self.advance()
+            node = TransposeExpr(op.line, node)
+        return node
+
+    def parse_primary(self):
+        """primary -> INTLIT | FLOATLIT | IDENTIFIER
+                    | IDENTIFIER '(' arg_list ')'
+                    | IDENTIFIER '[' expression ',' expression ']'
+                    | matrix_literal | '(' expression ')'"""
+        tok = self.peek()
+
         if self.match(TokenKind.INTLIT):
-            return LiteralExpr(token.line, int(token.lexeme))
+            return LiteralExpr(tok.line, int(tok.lexeme))
         if self.match(TokenKind.FLOATLIT):
-            return LiteralExpr(token.line, float(token.lexeme))
-        if self.match(TokenKind.IDENTIFIERLIT):
-            return VariableExpr(token.line, token.lexeme)
-        raise ParseError(f"Expected an expression (found '{token.lexeme}')", token.line)
-        #this is maria- asked claude more info, it seems this also needs a "(" as an expression 
+            return LiteralExpr(tok.line, float(tok.lexeme))
 
+        if self.match(TokenKind.IDENTIFIERLIT):
+            if self.match(TokenKind.LPAREN):                       # call
+                args = self.parse_arg_list()
+                self.expect(TokenKind.RPAREN, "Expected ')' after function arguments")
+                return CallExpr(tok.line, tok.lexeme, args)
+            if self.match(TokenKind.LBRACKET):                     # index
+                row = self.parse_expression()
+                self.expect(TokenKind.COMMA, "Expected ',' between matrix indices")
+                col = self.parse_expression()
+                self.expect(TokenKind.RBRACKET, "Expected ']' after matrix indices")
+                return MatrixAccessExpr(tok.line, tok.lexeme, row, col)
+            return VariableExpr(tok.line, tok.lexeme)
+
+        if tok.kind == TokenKind.LBRACKET:
+            return self.parse_matrix_literal()
+
+        if self.match(TokenKind.LPAREN):
+            node = self.parse_expression()
+            self.expect(TokenKind.RPAREN, "Expected ')' to close parenthesized expression")
+            return node                                            # parens leave no node
+
+        raise ParseError(f"Expected an expression (found '{tok.lexeme}')", tok.line)
+
+    def parse_arg_list(self):
+        """arg_list -> expression (',' expression)*"""
+        args = [self.parse_expression()]
+        while self.match(TokenKind.COMMA):
+            args.append(self.parse_expression())
+        return args
+
+    def parse_matrix_literal(self):
+        """matrix_literal -> '[' row (';' row)* ']'"""
+        start = self.expect(TokenKind.LBRACKET, "Expected '[' to start matrix literal")
+        rows = [self.parse_row()]
+        while self.match(TokenKind.SEMICOLON):
+            rows.append(self.parse_row())
+        self.expect(TokenKind.RBRACKET, "Expected ']' to close matrix literal")
+        return MatrixLiteralExpr(start.line, rows)
+
+    def parse_row(self):
+        """row -> expression (',' expression)*"""
+        row = [self.parse_expression()]
+        while self.match(TokenKind.COMMA):
+            row.append(self.parse_expression())
+        return row
     
     def parse_assignment(self):
         """assignment -> IDENTIFIERLIT ASSIGNMENT expression SEMICOLON
