@@ -1,7 +1,7 @@
 from src.lexer.token import TokenKind
 from src.ast.ast_node import (DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr, AssignmentStmt, 
                               MatrixAccessExpr, BinaryExpr, CallExpr, TransposeExpr, MatrixLiteralExpr,
-                              IfStmt, WhileStmt, BlockStmt)
+                              IfStmt, WhileStmt, BlockStmt, PrintStmt, Program)
 from src.semantic.type import IntType, FloatType, MatrixType
 
 
@@ -15,6 +15,22 @@ class ParseError(Exception):
 # Token kinds that can start a type.
 TYPE_START_KINDS = (TokenKind.INT, TokenKind.FLOAT, TokenKind.MATRIX)
 
+# Escape sequences the lexer accepts inside string literals (spec section 2.3).
+_ESCAPES = {'"': '"', '\\': '\\', 'n': '\n', 't': '\t'}
+
+
+def _unescape(raw):
+    """Resolve \\" \\\\ \\n \\t in a string literal's text (quotes already removed)."""
+    out = []
+    i = 0
+    while i < len(raw):
+        if raw[i] == '\\' and i + 1 < len(raw):
+            out.append(_ESCAPES.get(raw[i + 1], raw[i + 1]))
+            i += 2
+        else:
+            out.append(raw[i])
+            i += 1
+    return ''.join(out)
 
 class Parser:
     def __init__(self, tokens):
@@ -224,7 +240,8 @@ class Parser:
         tok = self.peek()
         if tok.kind == TokenKind.IDENTIFIERLIT:
             return self.parse_assignment()
-        # TODO: add the print_stmt branch (TokenKind.PRINT) once parse_print_stmt exists
+        if tok.kind == TokenKind.PRINT:
+            return self.parse_print_stmt()
         if tok.kind == TokenKind.IF:
             return self.parse_if_stmt()
         if tok.kind == TokenKind.WHILE:
@@ -267,3 +284,29 @@ class Parser:
             statements.append(self.parse_statement())
         self.expect(TokenKind.RCURLY, "Expected '}' to close block")
         return BlockStmt(start.line, statements)
+
+    #successful parse of MatLang program statements
+    def parse_print_stmt(self):
+        """print_stmt -> 'print' '(' print_arg (',' print_arg)* ')' ';'"""
+        print_tok = self.expect(TokenKind.PRINT, "Expected 'print'")
+        self.expect(TokenKind.LPAREN, "Expected '(' after 'print'")
+        arguments = [self.parse_print_arg()]
+        while self.match(TokenKind.COMMA):
+            arguments.append(self.parse_print_arg())
+        self.expect(TokenKind.RPAREN, "Expected ')' after print arguments")
+        self.expect(TokenKind.SEMICOLON, "Expected ';' after print statement")
+        return PrintStmt(print_tok.line, arguments)
+
+    def parse_print_arg(self):
+        """print_arg -> STRING | expression"""
+        tok = self.peek()
+        if self.match(TokenKind.STRINGLIT):
+            return LiteralExpr(tok.line, _unescape(tok.lexeme[1:-1]))  # drop the quotes
+        return self.parse_expression()
+
+    def parse_program(self):
+        """program -> statement*  (must consume every token up to EOF)"""
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.parse_statement())
+        return Program(statements)
