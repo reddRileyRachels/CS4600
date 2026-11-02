@@ -64,5 +64,5 @@ File
 >    - Lexer Unit Tests
 > - Project Milestone 3
 >   - Build AST node hierarchy (Statement, Expression subtypes)
-    - Implement recursive-descent routines for declarations, assignments, and control flow
-    - Parser successfully constructs ASTs for basic MatLang program statements
+>   - Implement recursive-descent routines for declarations, assignments, and control flow
+>   - Parser successfully constructs ASTs for basic MatLang program statements
