@@ -46,11 +46,10 @@ File
 
 ## Progress
 ### To Do
-- Project Milestone 3
-    - Build AST node hierarchy (Statement, Expression subtypes)
-    - Implement recursive-descent routines for declarations, assignments, and control flow
-    - Parser successfully constructs ASTs for basic MatLang program statements
 - Project Milestone 4
+    - Implement precedence-based expression parsing (parse_additive, parse_multiplicative, etc.)
+    - Implement 1-token lookahead logic for indexing A[...] vs assignments A = ....
+    - Parser unit tests pass; full AST generation for complex expressions and matrices
 - Project Milestone 5
 - Project Milestone 6
 - Project Milestone 7
@@ -63,3 +62,7 @@ File
 > - Project Milestone 2
 >    - Lexer Implementations 
 >    - Lexer Unit Tests
+> - Project Milestone 3
+>   - Build AST node hierarchy (Statement, Expression subtypes)
+    - Implement recursive-descent routines for declarations, assignments, and control flow
+    - Parser successfully constructs ASTs for basic MatLang program statements
