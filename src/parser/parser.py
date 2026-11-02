@@ -1,6 +1,7 @@
 from src.lexer.token import TokenKind
 from src.ast.ast_node import (DeclarationStmt, LiteralExpr, VariableExpr, UnaryExpr, AssignmentStmt, 
-                              MatrixAccessExpr, BinaryExpr, CallExpr, TransposeExpr, MatrixLiteralExpr)
+                              MatrixAccessExpr, BinaryExpr, CallExpr, TransposeExpr, MatrixLiteralExpr,
+                              IfStmt, WhileStmt, BlockStmt)
 from src.semantic.type import IntType, FloatType, MatrixType
 
 
@@ -94,7 +95,7 @@ class Parser:
         return DeclarationStmt(line, declared_type, name.lexeme, initializer)
 
 
-    #Expression parser 
+    #Expressions parser 
     def parse_expression(self):
         """expression -> additive"""
         return self.parse_additive()
@@ -189,7 +190,8 @@ class Parser:
         while self.match(TokenKind.COMMA):
             row.append(self.parse_expression())
         return row
-    
+
+    #Assignments
     def parse_assignment(self):
         """assignment -> IDENTIFIERLIT ASSIGNMENT expression SEMICOLON
                    | IDENTIFIERLIT LBRACKET expression COMMA expression RBRACKET
@@ -208,3 +210,60 @@ class Parser:
         value = self.parse_expression()
         self.expect(TokenKind.SEMICOLON, "Expected ';' after assignment")
         return AssignmentStmt(line=name_tok.line, target=target, value=value)
+
+        # Statements and control flow
+    def parse_statement(self):
+        """statement -> declaration | embedded_stmt"""
+        if self.is_type_start():
+            return self.parse_declaration()
+        return self.parse_embedded_stmt()
+
+    def parse_embedded_stmt(self):
+        """embedded_stmt -> assignment | print_stmt | if_stmt | while_stmt | block
+        A declaration is NOT allowed here (spec 3.2)."""
+        tok = self.peek()
+        if tok.kind == TokenKind.IDENTIFIERLIT:
+            return self.parse_assignment()
+        # TODO: add the print_stmt branch (TokenKind.PRINT) once parse_print_stmt exists
+        if tok.kind == TokenKind.IF:
+            return self.parse_if_stmt()
+        if tok.kind == TokenKind.WHILE:
+            return self.parse_while_stmt()
+        if tok.kind == TokenKind.LCURLY:
+            return self.parse_block()
+        if self.is_type_start():
+            raise ParseError("A declaration is not allowed here; put it inside a block { }",
+                             tok.line)
+        raise ParseError(f"Expected a statement (found '{tok.lexeme}')", tok.line)
+
+    def parse_if_stmt(self):
+        """if_stmt -> 'if' '(' expression ')' embedded_stmt ('else' embedded_stmt)?"""
+        if_tok = self.expect(TokenKind.IF, "Expected 'if'")
+        self.expect(TokenKind.LPAREN, "Expected '(' after 'if'")
+        condition = self.parse_expression()
+        self.expect(TokenKind.RPAREN, "Expected ')' after if condition")
+        then_branch = self.parse_embedded_stmt()
+        else_branch = None
+        if self.match(TokenKind.ELSE):              # greedy: else binds to the nearest if
+            else_branch = self.parse_embedded_stmt()
+        return IfStmt(if_tok.line, condition, then_branch, else_branch)
+
+    def parse_while_stmt(self):
+        """while_stmt -> 'while' '(' expression ')' embedded_stmt"""
+        while_tok = self.expect(TokenKind.WHILE, "Expected 'while'")
+        self.expect(TokenKind.LPAREN, "Expected '(' after 'while'")
+        condition = self.parse_expression()
+        self.expect(TokenKind.RPAREN, "Expected ')' after while condition")
+        body = self.parse_embedded_stmt()
+        return WhileStmt(while_tok.line, condition, body)
+
+    def parse_block(self):
+        """block -> '{' statement* '}'"""
+        start = self.expect(TokenKind.LCURLY, "Expected '{' to start block")
+        statements = []
+        while not self.check(TokenKind.RCURLY):
+            if self.is_at_end():                    # otherwise an unclosed { never ends
+                raise ParseError("Unterminated block: expected '}'", start.line)
+            statements.append(self.parse_statement())
+        self.expect(TokenKind.RCURLY, "Expected '}' to close block")
+        return BlockStmt(start.line, statements)
