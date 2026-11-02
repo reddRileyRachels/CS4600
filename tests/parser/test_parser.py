@@ -166,6 +166,27 @@ def test_program_indexed_assignment():
     node = program("matrix<2, 2> M; M[1, 2] = 5.0;")
     assert isinstance(node.statements[1].target, MatrixAccessExpr)
 
+def test_lookahead_normal_assignment():
+    node = stmt("A = 5;")
+
+    assert isinstance(node, AssignmentStmt)
+    assert node.target == "A"
+
+def test_lookahead_indexed_assignment():
+    node = stmt("A[1, 2] = 5.0;")
+
+    assert isinstance(node, AssignmentStmt)
+    assert isinstance(node.target, MatrixAccessExpr)
+
+def test_lookahead_matrix_access_in_expression():
+    node = stmt("print(A[1, 2]);")
+
+    assert isinstance(node, PrintStmt)
+    assert isinstance(node.arguments[0], MatrixAccessExpr)
+
+def test_lookahead_incomplete_indexed_assignment():
+    with pytest.raises(ParseError):
+        stmt("A[1, 2];")
 
 def test_program_statements_record_their_own_lines():
     node = program("int x;\nx = 1;\nprint(x);")

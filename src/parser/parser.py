@@ -227,11 +227,20 @@ class Parser:
         self.expect(TokenKind.SEMICOLON, "Expected ';' after assignment")
         return AssignmentStmt(line=name_tok.line, target=target, value=value)
 
-        # Statements and control flow
+    # Statements and control flow
     def parse_statement(self):
-        """statement -> declaration | embedded_stmt"""
         if self.is_type_start():
             return self.parse_declaration()
+
+        if self.check(TokenKind.IDENTIFIERLIT):
+            next_token = self.peek(1).kind
+
+            if next_token in (
+                TokenKind.ASSIGNMENT,
+                TokenKind.LBRACKET
+            ):
+                return self.parse_assignment()
+
         return self.parse_embedded_stmt()
 
     def parse_embedded_stmt(self):
