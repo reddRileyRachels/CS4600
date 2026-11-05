@@ -110,6 +110,12 @@ def test_double_unary_minus():
     assert isinstance(node, UnaryExpr)
     assert isinstance(node.operand, UnaryExpr)
 
+def test_unary_minus_literal():
+    node = expr("-6")
+    assert isinstance(node, UnaryExpr)
+    assert node.operator == "-"
+    assert node.operand.value == 6
+
 
 def test_transpose():
     node = expr("A'")
