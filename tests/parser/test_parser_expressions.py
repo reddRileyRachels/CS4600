@@ -258,3 +258,21 @@ def test_matrix_literal_missing_closing_bracket():
 def test_empty_matrix_literal():
     with pytest.raises(ParseError):
         expr("[]")
+
+
+''' COMPLEX EXPRESSION PARSING TESTS '''
+
+
+def test_complex_expression_many_binary():
+    node = expr("1 + 2 * 3 - 4 / 2")     # (1 + (2 * 3)) - (4 / 2)
+    assert isinstance(node, BinaryExpr)
+    assert node.operator == "-"
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.right_operand.operator == "/"
+    assert node.right_operand.left_operand.value == 4
+    assert node.right_operand.right_operand.value == 2
+    assert isinstance(node.left_operand, BinaryExpr)
+    assert node.left_operand.left_operand.value == 1
+    assert isinstance(node.left_operand.right_operand, BinaryExpr)
+    assert node.left_operand.right_operand.left_operand.value == 2
+    assert node.left_operand.right_operand.right_operand.value == 3
