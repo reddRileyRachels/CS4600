@@ -45,6 +45,18 @@ def test_nested_parentheses():
     node = expr("((x))")
     assert isinstance(node, VariableExpr)
 
+def test_nested_parentheses_with_expression():
+    node = expr("(6) + ((x * 3) - 2)")
+    assert isinstance(node, BinaryExpr)
+    assert node.operator == "+"
+    assert isinstance(node.left_operand, LiteralExpr)
+    assert node.left_operand.value == 6
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.right_operand.operator == "-"
+    assert isinstance(node.right_operand.left_operand, BinaryExpr)
+    assert node.right_operand.left_operand.operator == "*"
+    assert node.right_operand.right_operand.value == 2
+    assert isinstance(node.right_operand.left_operand.left_operand, VariableExpr)
 
 # --- precedence ------------------------------------------------------------
 
