@@ -39,6 +39,6 @@ __________________________________________
     * Matrix access inside arithmetic
     * Binary expression with transpose
     * Binary expression with unary negation
-    * Function call with arithmetic
+    * DONE - Function call with arithmetic
     * Negation, parentheses and transpose
     * Expression combining all precedence levels
