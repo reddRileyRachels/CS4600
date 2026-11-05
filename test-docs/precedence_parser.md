@@ -1,7 +1,7 @@
-Test Objectives:
+### Test Objectives:
     * Parser passes unit tests
     * ASTs, complex expressions, matrices fully generated/parsed
     * All generating/parsing satisfies precedence
 
-Verifying Objectives:
+### Verifying Objectives:
     * Parser passes unit tests
