@@ -25,3 +25,17 @@ ASTs, complex expressions, matrices fully generated/parsed
 All ASTs and matrices should be correctly generated and parsed, all expressions correctly parsed
     * Everything follows correct precedence and associativity, even with complex expressions
     * ASTs are fully generated with each node properly associated
+
+### General list of more objectives to test (as of writing this section)
+    (NOTE: this is an unverified list. Verify that these things are necessary before taking the time to implement.)
+    * Transpose of matrix literal
+    * Function call with multiple arguments
+    * Nested function calls
+    * Arithmetic in row index
+    * Arithmetic in column index
+    * Matrix access inside arithmetic
+    * Binary expression with transpose
+    * Binary expression with unary negation
+    * Function call with arithmetic
+    * Negation, parentheses and transpose
+    * Expression combining all precedence levels
