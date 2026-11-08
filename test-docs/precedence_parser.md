@@ -4,6 +4,12 @@ __________________________________________
     * ASTs, complex expressions, matrices fully generated/parsed
     * All generating/parsing satisfies precedence
 
+### Test Summary:
+__________________________________________
+    * Associativity, precedence, nested expressions, and function calls all have been tested, individually and/or part of other tests
+    * The tests gradually and generally become more complex the further in the test file
+    * If a complex test passes, it subsequently means all other tests it involves should pass too
+
 ### Verifying Objectives:
 ___________________________________________
 ### Parser passes unit tests
@@ -28,6 +34,8 @@ ___________________________________________
     * Everything follows correct precedence and associativity, even with complex expressions
     * ASTs are fully generated with each node properly associated
     * Matrices can have expressions/arithmetic in their indices
+    * Matrix access expressions can be children of binary or other expressions
+    * Complex expressions containing all precedence levels and numerous nested expressions are parsed correctly
 
 ### General list of more objectives to test (as of writing this section)
 __________________________________________
@@ -38,8 +46,8 @@ __________________________________________
     * DONE - Arithmetic in row index
     * DONE - Arithmetic in column index
     * DONE - Matrix access inside arithmetic
-    * Binary expression with transpose
-    * Binary expression with unary negation
+    * DONE - Binary expression with transpose
+    * DONE - Binary expression with unary negation
     * DONE - Function call with arithmetic
-    * Negation, parentheses and transpose
-    * Expression combining all precedence levels
+    * DONE - Negation, parentheses and transpose
+    * DONE - Expression combining all precedence levels

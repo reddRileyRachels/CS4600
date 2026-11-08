@@ -303,8 +303,37 @@ def test_complex_expression_many_binary():
     assert node.left_operand.right_operand.left_operand.value == 2
     assert node.left_operand.right_operand.right_operand.value == 3
 
-def test_matrix_access_in_arithmetic():
+def test_complex_matrix_access_in_arithmetic():
     node = expr("A[i, j] + 6")
     assert isinstance(node, BinaryExpr)
     assert isinstance(node.left_operand, MatrixAccessExpr)
     assert isinstance(node.right_operand, LiteralExpr)
+
+def test_complex_unary_tranpose_multiplicative_additive():
+    node = expr("-A' * B + C / 2")      # ( -(A') * B) + (C / 2)
+    assert isinstance(node, BinaryExpr)
+    assert isinstance(node.left_operand, BinaryExpr)
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.operator == "+"
+
+    AB = node.left_operand
+    assert AB.operator == "*"
+    assert isinstance(AB.left_operand, UnaryExpr)
+    assert isinstance(AB.left_operand.operand, TransposeExpr)
+    assert isinstance(AB.left_operand.operand.operand, VariableExpr)
+    assert AB.left_operand.operand.operand.identifier == "A"
+    assert isinstance(AB.right_operand, VariableExpr)
+    assert AB.right_operand.identifier == "B"
+
+    C = node.right_operand
+    assert C.operator == "/"
+    assert isinstance(C.left_operand, VariableExpr)
+    assert isinstance(C.right_operand, LiteralExpr)
+    assert C.left_operand.identifier == "C"
+    assert C.right_operand.value == 2
+
+def test_complex_nested_function_calls():
+    node = expr("inverse(transpose(A))")
+    assert isinstance(node, CallExpr)
+    assert node.function_name == "inverse"
+    assert isinstance(node.arguments[0], CallExpr)
