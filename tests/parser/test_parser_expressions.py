@@ -224,8 +224,14 @@ def test_matrix_literal_ragged_rows_still_parse():
     assert len(node.rows[0]) == 2
     assert len(node.rows[1]) == 1
 
-
-
+def test_matrix_arithmetic_in_indices():
+    node = expr("[1, 2; 3, 4]")
+    assert [e.value for e in node.rows[0]] == [1, 2]
+    assert [e.value for e in node.rows[1]] == [3, 4]
+    assert node.rows[0+1][int(6/6)].value == 4
+    assert node.rows[(1)][0 + (1)].value == 4
+    test_variable = 2
+    assert node.rows[test_variable - 1][-1 + 1].value == 3
 
 # --- syntax errors ---------------------------------------------------------
 

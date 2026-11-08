@@ -34,8 +34,8 @@ __________________________________________
     * Transpose of matrix literal
     * Function call with multiple arguments
     * Nested function calls
-    * Arithmetic in row index
-    * Arithmetic in column index
+    * DONE - Arithmetic in row index
+    * DONE - Arithmetic in column index
     * Matrix access inside arithmetic
     * Binary expression with transpose
     * Binary expression with unary negation
