@@ -42,7 +42,7 @@ __________________________________________
     (NOTE: this is an unverified list. Verify that these things are necessary before taking the time to implement.)
     * DONE - Transpose of matrix literal
     * Function call with multiple arguments
-    * Nested function calls
+    * DONE - Nested function calls
     * DONE - Arithmetic in row index
     * DONE - Arithmetic in column index
     * DONE - Matrix access inside arithmetic

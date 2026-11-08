@@ -337,3 +337,5 @@ def test_complex_nested_function_calls():
     assert isinstance(node, CallExpr)
     assert node.function_name == "inverse"
     assert isinstance(node.arguments[0], CallExpr)
+    assert node.arguments[0].function_name == "transpose"
+    assert isinstance(node.arguments[0].arguments[0], VariableExpr)
