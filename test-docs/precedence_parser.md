@@ -27,16 +27,17 @@ ___________________________________________
 ### All ASTs and matrices should be correctly generated and parsed, all expressions correctly parsed
     * Everything follows correct precedence and associativity, even with complex expressions
     * ASTs are fully generated with each node properly associated
+    * Matrices can have expressions/arithmetic in their indices
 
 ### General list of more objectives to test (as of writing this section)
 __________________________________________
     (NOTE: this is an unverified list. Verify that these things are necessary before taking the time to implement.)
-    * Transpose of matrix literal
+    * DONE - Transpose of matrix literal
     * Function call with multiple arguments
     * Nested function calls
     * DONE - Arithmetic in row index
     * DONE - Arithmetic in column index
-    * Matrix access inside arithmetic
+    * DONE - Matrix access inside arithmetic
     * Binary expression with transpose
     * Binary expression with unary negation
     * DONE - Function call with arithmetic

@@ -302,3 +302,9 @@ def test_complex_expression_many_binary():
     assert isinstance(node.left_operand.right_operand, BinaryExpr)
     assert node.left_operand.right_operand.left_operand.value == 2
     assert node.left_operand.right_operand.right_operand.value == 3
+
+def test_matrix_access_in_arithmetic():
+    node = expr("A[i, j] + 6")
+    assert isinstance(node, BinaryExpr)
+    assert isinstance(node.left_operand, MatrixAccessExpr)
+    assert isinstance(node.right_operand, LiteralExpr)
