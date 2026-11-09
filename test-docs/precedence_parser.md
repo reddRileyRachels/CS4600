@@ -6,7 +6,7 @@ __________________________________________
 
 ### Test Summary:
 __________________________________________
-    * Associativity, precedence, nested expressions, and function calls all have been tested, individually and/or part of other tests
+    * Associativity, precedence, nested expressions/calls, and function calls all have been tested, individually and/or part of other tests
     * The tests gradually and generally become more complex the further in the test file
     * If a complex test passes, it subsequently means all other tests it involves should pass too
 
@@ -41,7 +41,7 @@ ___________________________________________
 __________________________________________
     (NOTE: this is an unverified list. Verify that these things are necessary before taking the time to implement.)
     * DONE - Transpose of matrix literal
-    * Function call with multiple arguments
+    * DONE - Function call with multiple arguments
     * DONE - Nested function calls
     * DONE - Arithmetic in row index
     * DONE - Arithmetic in column index

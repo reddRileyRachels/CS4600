@@ -339,3 +339,11 @@ def test_complex_nested_function_calls():
     assert isinstance(node.arguments[0], CallExpr)
     assert node.arguments[0].function_name == "transpose"
     assert isinstance(node.arguments[0].arguments[0], VariableExpr)
+
+def test_complex_function_call_multiple_arguments():
+    node = expr("arbitrary_function(argument1, argument2)")
+    assert isinstance(node, CallExpr)
+    assert isinstance(node.arguments[0], VariableExpr)
+    assert isinstance(node.arguments[1], VariableExpr)
+    assert node.arguments[0].identifier == "argument1"
+    assert node.arguments[1].identifier == "argument2"
