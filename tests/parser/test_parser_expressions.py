@@ -45,6 +45,18 @@ def test_nested_parentheses():
     node = expr("((x))")
     assert isinstance(node, VariableExpr)
 
+def test_nested_parentheses_with_expression():
+    node = expr("(6) + ((x * 3) - 2)")
+    assert isinstance(node, BinaryExpr)
+    assert node.operator == "+"
+    assert isinstance(node.left_operand, LiteralExpr)
+    assert node.left_operand.value == 6
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.right_operand.operator == "-"
+    assert isinstance(node.right_operand.left_operand, BinaryExpr)
+    assert node.right_operand.left_operand.operator == "*"
+    assert node.right_operand.right_operand.value == 2
+    assert isinstance(node.right_operand.left_operand.left_operand, VariableExpr)
 
 # --- precedence ------------------------------------------------------------
 
@@ -109,6 +121,12 @@ def test_double_unary_minus():
     node = expr("--x")                             # -(-x)
     assert isinstance(node, UnaryExpr)
     assert isinstance(node.operand, UnaryExpr)
+
+def test_unary_minus_literal():
+    node = expr("-6")
+    assert isinstance(node, UnaryExpr)
+    assert node.operator == "-"
+    assert node.operand.value == 6
 
 
 def test_transpose():
@@ -206,6 +224,14 @@ def test_matrix_literal_ragged_rows_still_parse():
     assert len(node.rows[0]) == 2
     assert len(node.rows[1]) == 1
 
+def test_matrix_arithmetic_in_indices():
+    node = expr("[1, 2; 3, 4]")
+    assert [e.value for e in node.rows[0]] == [1, 2]
+    assert [e.value for e in node.rows[1]] == [3, 4]
+    assert node.rows[0+1][int(6/6)].value == 4
+    assert node.rows[(1)][0 + (1)].value == 4
+    test_variable = 2
+    assert node.rows[test_variable - 1][-1 + 1].value == 3
 
 # --- syntax errors ---------------------------------------------------------
 
@@ -258,3 +284,66 @@ def test_matrix_literal_missing_closing_bracket():
 def test_empty_matrix_literal():
     with pytest.raises(ParseError):
         expr("[]")
+
+
+''' COMPLEX EXPRESSION PARSING TESTS '''
+
+
+def test_complex_expression_many_binary():
+    node = expr("1 + 2 * 3 - 4 / 2")     # (1 + (2 * 3)) - (4 / 2)
+    assert isinstance(node, BinaryExpr)
+    assert node.operator == "-"
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.right_operand.operator == "/"
+    assert node.right_operand.left_operand.value == 4
+    assert node.right_operand.right_operand.value == 2
+    assert isinstance(node.left_operand, BinaryExpr)
+    assert node.left_operand.left_operand.value == 1
+    assert isinstance(node.left_operand.right_operand, BinaryExpr)
+    assert node.left_operand.right_operand.left_operand.value == 2
+    assert node.left_operand.right_operand.right_operand.value == 3
+
+def test_complex_matrix_access_in_arithmetic():
+    node = expr("A[i, j] + 6")
+    assert isinstance(node, BinaryExpr)
+    assert isinstance(node.left_operand, MatrixAccessExpr)
+    assert isinstance(node.right_operand, LiteralExpr)
+
+def test_complex_unary_tranpose_multiplicative_additive():
+    node = expr("-A' * B + C / 2")      # ( -(A') * B) + (C / 2)
+    assert isinstance(node, BinaryExpr)
+    assert isinstance(node.left_operand, BinaryExpr)
+    assert isinstance(node.right_operand, BinaryExpr)
+    assert node.operator == "+"
+
+    AB = node.left_operand
+    assert AB.operator == "*"
+    assert isinstance(AB.left_operand, UnaryExpr)
+    assert isinstance(AB.left_operand.operand, TransposeExpr)
+    assert isinstance(AB.left_operand.operand.operand, VariableExpr)
+    assert AB.left_operand.operand.operand.identifier == "A"
+    assert isinstance(AB.right_operand, VariableExpr)
+    assert AB.right_operand.identifier == "B"
+
+    C = node.right_operand
+    assert C.operator == "/"
+    assert isinstance(C.left_operand, VariableExpr)
+    assert isinstance(C.right_operand, LiteralExpr)
+    assert C.left_operand.identifier == "C"
+    assert C.right_operand.value == 2
+
+def test_complex_nested_function_calls():
+    node = expr("inverse(transpose(A))")
+    assert isinstance(node, CallExpr)
+    assert node.function_name == "inverse"
+    assert isinstance(node.arguments[0], CallExpr)
+    assert node.arguments[0].function_name == "transpose"
+    assert isinstance(node.arguments[0].arguments[0], VariableExpr)
+
+def test_complex_function_call_multiple_arguments():
+    node = expr("arbitrary_function(argument1, argument2)")
+    assert isinstance(node, CallExpr)
+    assert isinstance(node.arguments[0], VariableExpr)
+    assert isinstance(node.arguments[1], VariableExpr)
+    assert node.arguments[0].identifier == "argument1"
+    assert node.arguments[1].identifier == "argument2"
