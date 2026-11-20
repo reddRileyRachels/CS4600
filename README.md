@@ -1,6 +1,6 @@
 # CS4600 MatLang Python Compiler
 
-See project specifications in [MatlanSpec.pdf](MatlanSpec.pdf)
+See project specifications in [MatlangSpec.pdf](MatlangSpec.pdf)
 
 ### Collaborators
 - Riley (reddRileyRachels)
