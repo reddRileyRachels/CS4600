@@ -1,7 +1,6 @@
 # CS4600 MatLang Python Compiler
 
-### Description
-to be written
+See project specifications in [MatlangSpec.pdf](MatlangSpec.pdf)
 
 ### Collaborators
 - Riley (reddRileyRachels)
@@ -16,7 +15,6 @@ to be written
 to be written 
 
 ### Tests
-* Currently only one example test implemented test_setup.py   
 * Run in powershell terminal: 
     - pip install -r requirements.txt
     - pytest
@@ -37,26 +35,46 @@ File
 ### Merging 
 * Make a separate branch to develop with **do not** write straight to main (follow the branch naming conventions ^^)
 * **Do not merge without making a pull request and managing merge conflicts first**   
+* Be sure to pull the current changes into the main branch and merge the changes into your local branch before merging
 * Use the discord to notify the team of merging so no versions get overwritten (merge one at a time)  
-    - The repo is set up to make you make a pull request but a code review is not required (please let Riley know if this is not working)
-* Check your branch name and move tickets in the Kanban according to your progress
+    - The repo is set up to force you to make a pull request but a code review is not currently required (please let Riley know if this is not working)
+* Move tickets in the Kanban according to your progress
 * Make meaningful commit messages and name your pull request the **same as your branch**
 * Your branch will be deleted once you merge (you will make a new branch for every ticket)
 
 
 ## Progress
 ### To Do
-- Project Milestone 1
-    - Define core project interfaces (Token, ASTNode, Symbol, Type).
-    - Establish project folder layout and test harness scaffolding.
-    - Set up templates and development guidelines.
-- Project Milestone 2
-    - Lexer Implementations 
-    - Lexer Unit Tests
-- Project Milestone 3
-- Project Milestone 4
-- Project Milestone 5
 - Project Milestone 6
+    - Implement semantic checks for matrix dimensions, assignments, and built-ins.
+    - Enforce strict typing (no implicit coercions except context-typed integer literals)
+    - Semantic analyzer catches all static type, dimension, and scope errors.
 - Project Milestone 7
+    - Implement CodeGenerator for basic primitives, statements, and indentation control.
+    - Map basic scalar operations, print statements, and control flow to target Python
+    - Implement matrix translation (1-based to 0-based indexing conversion).
+    - Enforce matrix value semantics using explicit NumPy .copy() calls on assignments.
+    - AST node generator outputs valid Python code snippets for basic programs. Code generator successfully transforms matrix operations into NumPy code.
+
+
 
 > ### Completed Milestones
+> - Project Milestone 1
+>    - Define core project interfaces (Token, ASTNode, Symbol, Type).
+>    - Establish project folder layout and test harness scaffolding.
+>    - Set up templates and development guidelines.
+> - Project Milestone 2
+>    - Lexer Implementations 
+>    - Lexer Unit Tests
+> - Project Milestone 3
+>   - Build AST node hierarchy (Statement, Expression subtypes)
+>   - Implement recursive-descent routines for declarations, assignments, and control flow
+>   - Parser successfully constructs ASTs for basic MatLang program statements
+> - Project Milestone 4
+>   - Implement precedence-based expression parsing (parse_additive, parse_multiplicative, etc.)
+>   - Implement 1-token lookahead logic for indexing A[...] vs assignments A = ....
+>   - Parser unit tests pass; full AST generation for complex expressions and matrices
+> - Project Milestone 5
+>   - Implement SymbolTable, Scope, and nested lookup logic.
+>   - Construct type system primitives (IntType, FloatType, MatrixType(r, c)).
+>   - Symbol table validates scope boundaries, variable declarations, and shadowing
