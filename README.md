@@ -12,12 +12,12 @@ See project specifications in [MatlangSpec.pdf](MatlangSpec.pdf)
 ## Running The Compiler and Tests
 
 ### Compiler
-to be written 
+to be written in ticket **CS-35**
 
 ### Tests
-* Run in powershell terminal: 
-    - pip install -r requirements.txt
-    - pytest
+* Open terminal from the project directory
+* Run: ``` pip install -r requirements.txt ```   
+* Run: ``` pytest ```      
 
 ## Contributor Guide
 
