@@ -13,13 +13,16 @@ from src.ast.ast_node import (
     UnaryExpr,
     VariableExpr,
     IfStmt,
-    WhileStmt)
+    WhileStmt,
+)
 from src.semantic.symbol import Symbol
 from src.semantic.symbol_table import SemanticError, SymbolTable
 from src.semantic.type import FloatType, IntType, MatrixType
 
 
 class TypeChecker:
+    """Performs name resolution and static type/shape checks for MatLang."""
+
     def __init__(self, symbol_table=None):
         self.symbol_table = symbol_table if symbol_table is not None else SymbolTable()
 
@@ -28,18 +31,50 @@ class TypeChecker:
 
     @staticmethod
     def _is_int_literal(expr):
-        if isinstance(expr, LiteralExpr):
-            return type(expr.value) is int
-        return (
+        return TypeChecker._static_int_value(expr) is not None
+
+    @staticmethod
+    def _static_int_value(expr):
+        """Return an integer value for an integer literal (including -N)."""
+        if isinstance(expr, LiteralExpr) and type(expr.value) is int:
+            return expr.value
+        if (
             isinstance(expr, UnaryExpr)
             and expr.operator == "-"
             and isinstance(expr.operand, LiteralExpr)
             and type(expr.operand.value) is int
-        )
+        ):
+            return -expr.operand.value
+        return None
 
     def _expect_same(self, actual, expected, line, context):
         if actual != expected:
             self._error(f"{context} requires {expected}, got {actual}", line)
+
+    def _expect_matrix(self, actual, line, context):
+        if not isinstance(actual, MatrixType):
+            self._error(f"{context} requires a matrix, got {actual}", line)
+
+    def _check_matrix_indices(self, matrix_type, row_expr, col_expr, line):
+        row_type = self.check_expression(row_expr)
+        col_type = self.check_expression(col_expr)
+        self._expect_same(row_type, IntType(), getattr(row_expr, "line", line), "matrix row index")
+        self._expect_same(col_type, IntType(), getattr(col_expr, "line", line), "matrix column index")
+
+        row = self._static_int_value(row_expr)
+        col = self._static_int_value(col_expr)
+        # MatLang indices are zero-based. Dynamic indices are type-checked here;
+        # their run-time values cannot be bounded by this static checker.
+        if row is not None and not 0 <= row < matrix_type.rows:
+            self._error(
+                f"matrix row index {row} is out of bounds for {matrix_type.rows} rows",
+                line,
+            )
+        if col is not None and not 0 <= col < matrix_type.cols:
+            self._error(
+                f"matrix column index {col} is out of bounds for {matrix_type.cols} columns",
+                line,
+            )
 
     def check_program(self, program):
         if not isinstance(program, Program):
@@ -84,38 +119,75 @@ class TypeChecker:
             symbol = self.symbol_table.lookup(expr.matrix_name)
             if symbol is None:
                 self._error(f"'{expr.matrix_name}' is not declared", expr.line)
-            if not isinstance(symbol.type, MatrixType):
-                self._error(f"'{expr.matrix_name}' is not a matrix", expr.line)
+            self._expect_matrix(symbol.type, expr.line, f"'{expr.matrix_name}' indexing")
+            self._check_matrix_indices(
+                symbol.type, expr.row_index, expr.column_index, expr.line
+            )
             return FloatType()
 
         if isinstance(expr, TransposeExpr):
             operand_type = self.check_expression(expr.operand)
-            if not isinstance(operand_type, MatrixType):
-                self._error("transpose requires a matrix operand", expr.line)
+            self._expect_matrix(operand_type, expr.line, "transpose")
             return MatrixType(operand_type.cols, operand_type.rows)
 
         if isinstance(expr, CallExpr):
-            return_types = {
-                "rows": IntType,
-                "cols": IntType,
-                "determinant": FloatType,
-                "inverse": None,
-                "toFloat": FloatType,
-                "toInt": IntType,
-            }
-            if expr.function_name == "inverse":
-                args = expr.arguments or []
-                if args and isinstance(args[0], VariableExpr):
-                    symbol = self.symbol_table.lookup(args[0].identifier)
-                    if symbol is not None and isinstance(symbol.type, MatrixType):
-                        return symbol.type
-                return MatrixType(1, 1)
-            result_type = return_types.get(expr.function_name)
-            if result_type is not None:
-                return result_type()
-            self._error(f"cannot determine type of function '{expr.function_name}'", expr.line)
+            return self._check_builtin_call(expr)
 
-        self._error(f"unsupported expression node {type(expr).__name__}", getattr(expr, "line", 1))
+        self._error(
+            f"unsupported expression node {type(expr).__name__}",
+            getattr(expr, "line", 1),
+        )
+
+    def _check_builtin_call(self, expr):
+        name = expr.function_name
+        args = expr.arguments or []
+        arities = {
+            "rows": 1,
+            "cols": 1,
+            "determinant": 1,
+            "inverse": 1,
+            "toFloat": 1,
+            "toInt": 1,
+        }
+        if name not in arities:
+            self._error(f"unknown built-in function '{name}'", expr.line)
+        expected_arity = arities[name]
+        if len(args) != expected_arity:
+            self._error(
+                f"built-in '{name}' expects {expected_arity} argument(s), got {len(args)}",
+                expr.line,
+            )
+
+        arg_type = self.check_expression(args[0])
+        if name in ("rows", "cols"):
+            self._expect_matrix(arg_type, expr.line, f"built-in '{name}'")
+            return IntType()
+
+        if name == "determinant":
+            self._expect_matrix(arg_type, expr.line, "built-in 'determinant'")
+            if not arg_type.is_square():
+                self._error(
+                    f"built-in 'determinant' requires a square matrix, got {arg_type}",
+                    expr.line,
+                )
+            return FloatType()
+
+        if name == "inverse":
+            self._expect_matrix(arg_type, expr.line, "built-in 'inverse'")
+            if not arg_type.is_square():
+                self._error(
+                    f"built-in 'inverse' requires a square matrix, got {arg_type}",
+                    expr.line,
+                )
+            return arg_type
+
+        # Conversion built-ins accept scalar numeric values only.
+        if not isinstance(arg_type, (IntType, FloatType)):
+            self._error(
+                f"built-in '{name}' requires a scalar numeric argument, got {arg_type}",
+                expr.line,
+            )
+        return FloatType() if name == "toFloat" else IntType()
 
     def _check_binary(self, expr):
         left_expr = expr.left_operand
@@ -128,7 +200,12 @@ class TypeChecker:
             if isinstance(left_type, (IntType, FloatType)) and left_type == right_type:
                 return left_type
             if isinstance(left_type, MatrixType) and isinstance(right_type, MatrixType):
-                # Shape compatibility is handled by the separate matrix-dimension checks.
+                if left_type != right_type:
+                    self._error(
+                        f"matrix operator '{op}' requires equal dimensions, "
+                        f"got {left_type} and {right_type}",
+                        expr.line,
+                    )
                 return left_type
             self._error(
                 f"operator '{op}' requires matching operand types, "
@@ -140,7 +217,12 @@ class TypeChecker:
             if isinstance(left_type, (IntType, FloatType)) and left_type == right_type:
                 return left_type
             if isinstance(left_type, MatrixType) and isinstance(right_type, MatrixType):
-                # Matrix shape compatibility is intentionally not checked here.
+                if left_type.cols != right_type.rows:
+                    self._error(
+                        "matrix multiplication requires left columns to equal "
+                        f"right rows, got {left_type} and {right_type}",
+                        expr.line,
+                    )
                 return MatrixType(left_type.rows, right_type.cols)
             if isinstance(left_type, MatrixType) and isinstance(right_type, FloatType):
                 return left_type
@@ -170,7 +252,16 @@ class TypeChecker:
         self._error(f"unknown binary operator '{op}'", expr.line)
 
     def _check_matrix_literal(self, expr):
-        for row in expr.rows:
+        if not expr.rows or not expr.rows[0]:
+            self._error("matrix literal must contain at least one row and column", expr.line)
+        expected_cols = len(expr.rows[0])
+        for row_number, row in enumerate(expr.rows, start=1):
+            if len(row) != expected_cols:
+                self._error(
+                    f"matrix literal row {row_number} has {len(row)} element(s); "
+                    f"expected {expected_cols}",
+                    expr.line,
+                )
             for element in row:
                 actual = self.check_expression(
                     element,
@@ -181,32 +272,27 @@ class TypeChecker:
                         f"matrix elements must be float, got {actual}",
                         element.line,
                     )
-        rows = len(expr.rows)
-        cols = len(expr.rows[0]) if expr.rows else 0
-        return MatrixType(rows, cols)
+        return MatrixType(len(expr.rows), expected_cols)
+
+    def _check_assignment_value(self, value, expected, line, context):
+        actual = self.check_expression(
+            value,
+            expected_type=expected if isinstance(expected, FloatType) else None,
+        )
+        self._expect_same(actual, expected, line, context)
 
     def check_statement(self, statement):
         if isinstance(statement, DeclarationStmt):
             declared_type = statement.declared_type
-            if statement.initializer is not None:
-                actual = self.check_expression(
-                    statement.initializer,
-                    expected_type=(
-                        declared_type
-                        if isinstance(declared_type, FloatType)
-                        else None
-                    ),
+            if isinstance(declared_type, MatrixType) and not declared_type.has_valid_dimensions():
+                self._error(
+                    f"matrix declaration must have positive dimensions, got {declared_type}",
+                    statement.line,
                 )
-                if not (
-                    isinstance(declared_type, MatrixType)
-                    and isinstance(statement.initializer, MatrixLiteralExpr)
-                ):
-                    self._expect_same(
-                        actual,
-                        declared_type,
-                        statement.line,
-                        "initializer",
-                    )
+            if statement.initializer is not None:
+                self._check_assignment_value(
+                    statement.initializer, declared_type, statement.line, "initializer"
+                )
             self.symbol_table.declare(
                 Symbol(statement.declared_identifier, declared_type, statement.line)
             )
@@ -214,41 +300,33 @@ class TypeChecker:
 
         if isinstance(statement, AssignmentStmt):
             if isinstance(statement.target, MatrixAccessExpr):
-                actual = self.check_expression(
-                    statement.value,
-                    expected_type=FloatType(),
+                symbol = self.symbol_table.lookup(statement.target.matrix_name)
+                if symbol is None:
+                    self._error(
+                        f"'{statement.target.matrix_name}' is not declared",
+                        statement.line,
+                    )
+                self._expect_matrix(
+                    symbol.type, statement.line,
+                    f"'{statement.target.matrix_name}' indexed assignment",
                 )
-                self._expect_same(
-                    actual,
-                    FloatType(),
+                self._check_matrix_indices(
+                    symbol.type,
+                    statement.target.row_index,
+                    statement.target.column_index,
                     statement.line,
-                    "indexed assignment",
+                )
+                self._check_assignment_value(
+                    statement.value, FloatType(), statement.line, "indexed assignment"
                 )
                 return
 
             symbol = self.symbol_table.lookup(statement.target)
             if symbol is None:
-                self._error(
-                    f"'{statement.target}' is not declared",
-                    statement.line,
-                )
-            expected = symbol.type
-            actual = self.check_expression(
-                statement.value,
-                expected_type=(
-                    expected if isinstance(expected, FloatType) else None
-                ),
+                self._error(f"'{statement.target}' is not declared", statement.line)
+            self._check_assignment_value(
+                statement.value, symbol.type, statement.line, "assignment"
             )
-            if not (
-                isinstance(expected, MatrixType)
-                and isinstance(statement.value, MatrixLiteralExpr)
-            ):
-                self._expect_same(
-                    actual,
-                    expected,
-                    statement.line,
-                    "assignment",
-                )
             return
 
         if isinstance(statement, PrintStmt):
