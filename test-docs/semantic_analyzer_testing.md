@@ -12,7 +12,7 @@ From the repository root:
 
     pytest tests/semantic/
 
-**Result: 391 passed, 0 failed.**
+**Result: 202 passed, 0 failed.**
 
 ## Test files
 
