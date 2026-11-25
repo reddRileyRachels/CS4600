@@ -72,12 +72,12 @@ class TypeChecker:
         col = self._static_int_value(col_expr)
         # MatLang spec says indices are 1 through r. Dynamic indices are type-checked here;
         # their run-time values cannot be bounded by this static checker.
-        if row is not None and not 1 <= row < matrix_type.rows:
+        if row is not None and not 1 <= row <= matrix_type.rows:
             self._error(
                 f"matrix row index {row} is out of bounds for {matrix_type.rows} rows",
                 line,
             )
-        if col is not None and not 1 <= col < matrix_type.cols:
+        if col is not None and not 1 <= col <= matrix_type.cols:
             self._error(
                 f"matrix column index {col} is out of bounds for {matrix_type.cols} columns",
                 line,
@@ -189,12 +189,12 @@ class TypeChecker:
             return arg_type
 
         # Conversion built-ins accept scalar numeric values only.
-        if not isinstance(arg_type, (IntType, FloatType)):
-            self._error(
-                f"built-in '{name}' requires a scalar numeric argument, got {arg_type}",
-                expr.line,
-            )
-        return FloatType() if name == "toFloat" else IntType()
+        if name == "toFloat":
+            self._expect_same(arg_type, IntType(), expr.line, "built-in 'toFloat'")
+            return FloatType()
+
+        self._expect_same(arg_type, FloatType(), expr.line, "built-in 'toInt'")
+        return IntType()
 
     def _check_binary(self, expr):
         left_expr = expr.left_operand
@@ -344,14 +344,14 @@ class TypeChecker:
             return
 
         if isinstance(statement, IfStmt):
-            self.check_expression(statement.condition, "if")
+            self._check_condition(statement.condition, "if")
             self.check_statement(statement.then_branch)
             if statement.else_branch is not None:
                 self.check_statement(statement.else_branch)
             return
 
         if isinstance(statement, WhileStmt):
-            self.check_expression(statement.condition, "while")
+            self._check_condition(statement.condition, "while")
             self.check_statement(statement.loop_body)
             return
 
