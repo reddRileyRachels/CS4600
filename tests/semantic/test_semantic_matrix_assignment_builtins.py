@@ -83,7 +83,7 @@ def test_matrix_index_checks_integer_type_and_static_bounds():
 
 def test_indexed_assignment_requires_matrix_target_and_float_value():
     with pytest.raises(SemanticError, match="indexed assignment requires float"):
-        analyze("matrix<2,2> A = [1,2;3,4]; A[0,0] = A;")
+        analyze("matrix<2,2> A = [1,2;3,4]; A[1,1] = A;")
 
 
 def test_rows_cols_and_numeric_conversions_accept_valid_arguments():
@@ -120,9 +120,12 @@ def test_inverse_preserves_matrix_dimensions():
 
 
 def test_conversion_builtins_reject_matrix_arguments():
-    with pytest.raises(SemanticError, match="requires a scalar numeric argument"):
+    with pytest.raises(SemanticError, match="requires int"):
         analyze("matrix<1,1> A = [1]; float x = toFloat(A);")
 
+def test_toint_rejects_matrix_argument():
+    with pytest.raises(SemanticError, match="requires float"):
+        analyze("matrix<1,1> A = [1]; int x = toInt(A);")
 
 def test_unknown_function_is_rejected():
     with pytest.raises(SemanticError, match="unknown built-in function"):
