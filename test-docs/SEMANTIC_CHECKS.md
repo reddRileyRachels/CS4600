@@ -12,7 +12,7 @@ The semantic analyzer now validates the following rules in `src/semantic/type_ch
 - Matrix initializers and assignments must match the declared matrix shape exactly.
 - Matrix indexing and indexed assignment require a matrix target and integer
   row/column expressions. Literal indices are checked at compile time using
-  zero-based indexing. Non-literal indices are type-checked, but their run-time
+  indexing starts at 1. Non-literal indices are type-checked, but their run-time
   values cannot be proven in bounds by this static checker.
 
 ## Built-in functions
@@ -25,8 +25,8 @@ The checker validates the built-ins already listed by this project:
 | `cols(M)` | one matrix | `int` |
 | `determinant(M)` | one square matrix | `float` |
 | `inverse(M)` | one square matrix | same matrix dimensions |
-| `toFloat(x)` | one scalar numeric value | `float` |
-| `toInt(x)` | one scalar numeric value | `int` |
+| `toFloat(int)` | | `float` |
+| `toInt(float)` | | `int` |
 
 Unknown function names, extra arguments, invalid argument types, and
 non-square arguments to `determinant` / `inverse` are rejected.

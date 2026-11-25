@@ -1,7 +1,7 @@
 import pytest
 
 from src.lexer.lexer import lexer
-from src.parser.parser import Parser
+from src.parser.parser import Parser, ParseError
 from src.semantic.symbol_table import SemanticError
 from src.semantic.type_checker import TypeChecker
 
@@ -235,3 +235,14 @@ def test_undeclared_matrix_in_indexed_assignment():
 
 def test_type_error_reports_line_number():
     assert_error("int x = 1;\nint y = 2.5;", line=2)
+
+def test_parenthesized_literal_in_float_context():
+    # spec 4.3: "directly" -- is (3) still a literal?
+    analyze("float x = (3);")
+
+def test_string_outside_print_is_rejected():
+    # spec 3 / 7: STRING is not in `primary`, so this is a syntax error,
+    # never reaching the semantic analyzer
+    with pytest.raises(ParseError):
+        assert_error('int x = "a";')
+
