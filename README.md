@@ -45,36 +45,34 @@ File
 
 ## Progress
 ### To Do
-- Project Milestone 6
-    - Implement semantic checks for matrix dimensions, assignments, and built-ins.
-    - Enforce strict typing (no implicit coercions except context-typed integer literals)
-    - Semantic analyzer catches all static type, dimension, and scope errors.
 - Project Milestone 7
-    - Implement CodeGenerator for basic primitives, statements, and indentation control.
+    - Implement CodeGenerator for basic primitives, statements, and indentation control. **-Riley**
     - Map basic scalar operations, print statements, and control flow to target Python
     - Implement matrix translation (1-based to 0-based indexing conversion).
     - Enforce matrix value semantics using explicit NumPy .copy() calls on assignments.
     - AST node generator outputs valid Python code snippets for basic programs. Code generator successfully transforms matrix operations into NumPy code.
 
-
-
 > ### Completed Milestones
 > - Project Milestone 1
->    - Define core project interfaces (Token, ASTNode, Symbol, Type).
->    - Establish project folder layout and test harness scaffolding.
->    - Set up templates and development guidelines.
+>    - Define core project interfaces (Token, ASTNode, Symbol, Type). **-Riley and Diego**
+>    - Establish project folder layout and test harness scaffolding. **-Riley**
+>    - Set up templates and development guidelines. **-Riley**
 > - Project Milestone 2
->    - Lexer Implementations 
->    - Lexer Unit Tests
+>    - Lexer Implementations **-Riley**
+>    - Lexer Unit Tests **-Riley**
 > - Project Milestone 3
->   - Build AST node hierarchy (Statement, Expression subtypes)
->   - Implement recursive-descent routines for declarations, assignments, and control flow
->   - Parser successfully constructs ASTs for basic MatLang program statements
+>   - Build AST node hierarchy (Statement, Expression subtypes) **-Braeden**
+>   - Implement recursive-descent routines for declarations, assignments, and control flow **-Maria and Diego**
+>   - Parser successfully constructs ASTs for basic MatLang program statements **-Maria**
 > - Project Milestone 4
->   - Implement precedence-based expression parsing (parse_additive, parse_multiplicative, etc.)
->   - Implement 1-token lookahead logic for indexing A[...] vs assignments A = ....
->   - Parser unit tests pass; full AST generation for complex expressions and matrices
+>   - Implement precedence-based expression parsing (parse_additive, parse_multiplicative, etc.) **-Braeden**
+>   - Implement 1-token lookahead logic for indexing A[...] vs assignments A = .... **-Riley**
+>   - Parser unit tests pass; full AST generation for complex expressions and matrices **-Braeden**
 > - Project Milestone 5
->   - Implement SymbolTable, Scope, and nested lookup logic.
->   - Construct type system primitives (IntType, FloatType, MatrixType(r, c)).
->   - Symbol table validates scope boundaries, variable declarations, and shadowing
+>   - Implement SymbolTable, Scope, and nested lookup logic. **-Diego**
+>   - Construct type system primitives (IntType, FloatType, MatrixType(r, c)). **-Diego**
+>   - Symbol table validates scope boundaries, variable declarations, and shadowing **-Diego**
+> - Project Milestone 6
+>   - Implement semantic checks for matrix dimensions, assignments, and built-ins. **-Maria and Malakai**
+>   - Enforce strict typing (no implicit coercions except context-typed integer literals) **-Riley**
+>   - Semantic analyzer catches all static type, dimension, and scope errors. **-Maria**
