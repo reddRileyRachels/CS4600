@@ -1,4 +1,5 @@
 from src.ast import ast_node as nodes
+from src.semantic.type import MatrixType
 
 class Generator:
     def __init__(self):
