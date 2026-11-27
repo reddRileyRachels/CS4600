@@ -64,6 +64,9 @@ class Generator:
             
             self.emit_line(f"{identifier} = {initializer}")
 
+        else:
+            self.emit_line(f"{identifier} = None")
+
     def generate_assignment(self, node):
         target = node.target
         value = self.generate_expression(node.value)
