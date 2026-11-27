@@ -338,3 +338,28 @@ def test_scalar_assignment_does_not_copy():
 
     assert "B = A" in output
     assert "B = (A).copy()" not in output
+
+def test_uninitialized_variable_generates_none():
+    source = "int x;"
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert output == "x = None"
+
+def test_uninitialized_matrix_generates_none():
+    source = "matrix<2,2> A;"
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert output == "A = None"
+
+def test_matrix_copy_binary_expression():
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B;
+    matrix<2,2> C = A + B;
+    """
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert "C = ((A + B)).copy()" in output
