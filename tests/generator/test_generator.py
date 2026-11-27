@@ -319,7 +319,6 @@ def test_generate_matrix_assignment_copy():
 
     program = Parser(lexer(source)).parse_program()
 
-    generator = Generator()
     output = generator.generate(program)
 
     assert "B = (A).copy()" in output
@@ -353,11 +352,23 @@ def test_uninitialized_matrix_generates_none():
     output = generator.generate(program)
     assert output == "A = None"
 
-def test_matrix_copy_binary_expression():
+def test_matrix_declaration_copy_binary_expression():
     source = """
     matrix<2,2> A;
     matrix<2,2> B;
     matrix<2,2> C = A + B;
+    """
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert "C = ((A + B)).copy()" in output
+
+def test_matrix_assignment_copy_binary_expression():
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B;
+    matrix<2,2> C;
+    C = A + B;
     """
     program = Parser(lexer(source)).parse_program()
     generator = Generator()
