@@ -1,6 +1,8 @@
 import pytest
 from src.generator.generator import Generator
 from src.ast import ast_node as nodes
+from src.parser.parser import Parser
+from src.lexer.lexer import lexer
 
 def literal(value):
     return nodes.LiteralExpr(1, value)
@@ -291,3 +293,84 @@ def test_integer_division_runtime(left, right, expected):
     expression = binary(literal(left), "/", literal(right))
     generated = generator.generate_expression(expression)
     assert eval(generated) == expected
+
+
+def test_matrix_declaration_copy():
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B = A;
+    """
+
+    program = Parser(lexer(source)).parse_program()
+
+    generator = Generator()
+    output = generator.generate(program)
+
+    assert "B = (A).copy()" in output
+
+
+def test_generate_matrix_assignment_copy():
+    generator = Generator()
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B;
+    B = A;
+    """
+
+    program = Parser(lexer(source)).parse_program()
+
+    output = generator.generate(program)
+
+    assert "B = (A).copy()" in output
+
+def test_scalar_assignment_does_not_copy():
+    source = """
+    int A = 5;
+    int B;
+    B = A;
+    """
+
+    program = Parser(lexer(source)).parse_program()
+
+    generator = Generator()
+    output = generator.generate(program)
+
+    assert "B = A" in output
+    assert "B = (A).copy()" not in output
+
+def test_uninitialized_variable_generates_none():
+    source = "int x;"
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert output == "x = None"
+
+def test_uninitialized_matrix_generates_none():
+    source = "matrix<2,2> A;"
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert output == "A = None"
+
+def test_matrix_declaration_copy_binary_expression():
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B;
+    matrix<2,2> C = A + B;
+    """
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert "C = ((A + B)).copy()" in output
+
+def test_matrix_assignment_copy_binary_expression():
+    source = """
+    matrix<2,2> A;
+    matrix<2,2> B;
+    matrix<2,2> C;
+    C = A + B;
+    """
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert "C = ((A + B)).copy()" in output

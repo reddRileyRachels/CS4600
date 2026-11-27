@@ -1,4 +1,5 @@
 from src.ast import ast_node as nodes
+from src.semantic.type import MatrixType
 
 class Generator:
     def __init__(self):
@@ -58,11 +59,22 @@ class Generator:
 
         if node.initializer is not None:
             initializer = self.generate_expression(node.initializer)
+            if isinstance(self.variable_types[identifier], MatrixType):
+                initializer = (f"({initializer}).copy()")
+            
             self.emit_line(f"{identifier} = {initializer}")
+
+        else:
+            self.emit_line(f"{identifier} = None")
 
     def generate_assignment(self, node):
         target = node.target
         value = self.generate_expression(node.value)
+
+        if isinstance(target, str) and isinstance(
+            self.variable_types.get(target), MatrixType
+        ):
+            value = (f"({value}).copy()")
 
         self.emit_line(f"{target} = {value}")
 

@@ -26,7 +26,7 @@ class DeclarationStmt(Statement):
 class AssignmentStmt(Statement):
     def __init__(self, line, target, value):
         super().__init__(line)
-        self.target = target # target name; variable or matrix
+        self.target = target # target name; variable (A) or MatrixAccessExpr (A[1,2])
         self.value = value # value is an expression
 
 class PrintStmt(Statement):
