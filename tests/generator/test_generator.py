@@ -401,3 +401,15 @@ def test_generate_matrix_declaration_literal_initializer():
     assert output == (
         "A = (np.array([[1, 2], [3, 4]], dtype=float)).copy()"
     )
+
+def test_generate_matrix_access_literal_indices():
+    node = expr("A[1, 2]")
+    generator = Generator()
+    output = generator.generate_expression(node)
+    assert output == "A[(1) - 1, (2) - 1]"
+
+def test_generate_matrix_access_variable_indices():
+    node = expr("A[i, j]")
+    generator = Generator()
+    output = generator.generate_expression(node)
+    assert output == "A[(i) - 1, (j) - 1]"
