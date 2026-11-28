@@ -384,3 +384,9 @@ def test_generate_matrix_literal_2x2():
     generator = Generator()
     output = generator.generate_expression(node)
     assert output == "np.array([[1, 2], [3, 4]], dtype=float)"
+
+def test_generate_matrix_literal_4x1():
+    node = expr("[1; 2; 3; 4]")
+    generator = Generator()
+    output = generator.generate_expression(node)
+    assert output == "np.array([[1], [2], [3], [4]], dtype=float)"
