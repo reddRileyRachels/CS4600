@@ -4,6 +4,10 @@ from src.ast import ast_node as nodes
 from src.parser.parser import Parser
 from src.lexer.lexer import lexer
 
+def expr(source):
+    """Lex `source` and parse it as a single expression."""
+    return Parser(lexer(source)).parse_expression()
+
 def literal(value):
     return nodes.LiteralExpr(1, value)
 
@@ -374,3 +378,6 @@ def test_matrix_assignment_copy_binary_expression():
     generator = Generator()
     output = generator.generate(program)
     assert "C = ((A + B)).copy()" in output
+
+def test_generate_matrix_literal_2x2():
+    node = expr("[1; 2; 3; 4]")
