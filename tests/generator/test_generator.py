@@ -390,3 +390,14 @@ def test_generate_matrix_literal_4x1():
     generator = Generator()
     output = generator.generate_expression(node)
     assert output == "np.array([[1], [2], [3], [4]], dtype=float)"
+
+def test_generate_matrix_declaration_literal_initializer():
+    source = """
+    matrix<2,2> A = [1, 2; 3, 4];
+    """
+    program = Parser(lexer(source)).parse_program()
+    generator = Generator()
+    output = generator.generate(program)
+    assert output == (
+        "A = (np.array([[1, 2], [3, 4]], dtype=float)).copy()"
+    )
