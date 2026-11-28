@@ -42,6 +42,8 @@ class Generator:
             return self.generate_binary(expression)
         elif isinstance(expression, nodes.MatrixLiteralExpr):
             return self.generate_matrix_literal(expression)
+        elif isinstance(expression, nodes.MatrixAccessExpr):
+            return self.generate_matrix_access(expression)
 
     def emit_line(self, code):
         self.output += ["\t" * self.indent_level + code]
@@ -210,3 +212,9 @@ class Generator:
             ]
             rows.append(f"[{', '.join(elements)}]")
         return f"np.array([{', '.join(rows)}], dtype=float)"
+
+    def generate_matrix_access(self, node):
+        matrix = node.matrix_name
+        row = self.generate_expression(node.row_index)
+        column = self.generate_expression(node.column_index)
+        return f"{matrix}[({row}) - 1, ({column}) - 1]"
