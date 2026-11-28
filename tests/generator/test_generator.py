@@ -380,4 +380,7 @@ def test_matrix_assignment_copy_binary_expression():
     assert "C = ((A + B)).copy()" in output
 
 def test_generate_matrix_literal_2x2():
-    node = expr("[1; 2; 3; 4]")
+    node = expr("[1, 2; 3, 4]")
+    generator = Generator()
+    output = generator.generate_expression(node)
+    assert output == "np.array([[1, 2], [3, 4]], dtype=float)"

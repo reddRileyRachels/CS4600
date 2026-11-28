@@ -208,5 +208,5 @@ class Generator:
                 self.generate_expression(element)
                 for element in row
             ]
-            rows.append(f"[{','.join(elements)}]")
-        return f"np.array([{','.join(rows)}], dtype=float)"
+            rows.append(f"[{', '.join(elements)}]")
+        return f"np.array([{', '.join(rows)}], dtype=float)"
